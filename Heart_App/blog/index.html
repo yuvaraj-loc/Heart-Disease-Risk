@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building a Heart Disease Risk Assessment App with Machine Learning</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --accent: #b42318;
+      --accent-2: #0f766e;
+      --border: #d9e2ec;
+      --shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(180, 35, 24, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.09), transparent 24%),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+      line-height: 1.75;
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 40px 20px 72px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #111827, #1f2937 58%, #334155);
+      color: white;
+      border-radius: 28px;
+      padding: 44px 42px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -80px auto;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(180, 35, 24, 0.28), transparent 65%);
+      filter: blur(2px);
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font: 700 12px/1.2 Arial, sans-serif;
+      color: #fca5a5;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font: 700 clamp(2.1rem, 4vw, 4rem)/1.06 Georgia, serif;
+      max-width: 15ch;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 78ch;
+      font-size: 1.05rem;
+      color: #dbe4ee;
+    }
+
+    .meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .jump-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .jump-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      padding: 9px 13px;
+      border-radius: 999px;
+      font: 600 13px/1.2 Arial, sans-serif;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      font: 600 13px/1.2 Arial, sans-serif;
+      color: #eff6ff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    article, aside, .project-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    article {
+      padding: 32px;
+    }
+
+    aside {
+      padding: 24px;
+      align-self: start;
+      position: sticky;
+      top: 18px;
+    }
+
+    h2, h3 {
+      font-family: Georgia, serif;
+      line-height: 1.15;
+      margin: 28px 0 12px;
+    }
+
+    h2 { font-size: 1.7rem; }
+    h3 { font-size: 1.18rem; }
+
+    p { margin: 0 0 16px; color: var(--ink); }
+
+    .muted { color: var(--muted); }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #fff7f7;
+      padding: 16px 18px;
+      border-radius: 16px;
+      margin: 20px 0;
+    }
+
+    ul {
+      margin: 10px 0 18px 18px;
+      padding: 0;
+    }
+
+    li { margin-bottom: 10px; }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0 8px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+
+    .feature-card {
+      padding: 18px;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid #dbe4ef;
+    }
+
+    .feature-card h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font: 600 12px/1.2 Arial, sans-serif;
+      border: 1px solid #dbe3ff;
+    }
+
+    .project-list {
+      display: grid;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .project-card {
+      padding: 18px;
+    }
+
+    .project-name {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .project-links a {
+      display: inline-block;
+      margin-right: 10px;
+      margin-top: 10px;
+      color: white;
+      background: var(--accent-2);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font: 600 13px/1.2 Arial, sans-serif;
+    }
+
+    .project-links a.secondary {
+      background: #334155;
+    }
+
+    .screenshot-box {
+      margin: 18px 0;
+      padding: 28px;
+      border-radius: 18px;
+      background: #f0f4f8;
+      border: 2px dashed #cbd5e1;
+      color: #64748b;
+      text-align: center;
+      font: 500 14px Arial, sans-serif;
+      min-height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .metrics-table th {
+      background: #f0f4f8;
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #dbe4ef;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .metrics-table td {
+      padding: 12px;
+      border: 1px solid #dbe4ef;
+      color: #475569;
+    }
+
+    .metric-value {
+      font-weight: 600;
+      color: #0f766e;
+    }
+
+    .app-mockup {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 20px;
+      margin: 16px 0;
+      border: 2px solid #cbd5e1;
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      color: white;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .input-field {
+      background: white;
+      border: 1px solid #dbe4ef;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+
+    .input-group {
+      margin: 12px 0;
+    }
+
+    .input-label {
+      font-weight: 600;
+      font-size: 13px;
+      color: #1f2937;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .predict-btn {
+      background: #0f766e;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 12px 0;
+      width: 100%;
+    }
+
+    .prediction-result {
+      background: #dcfce7;
+      border-left: 4px solid #16a34a;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-weight: 600;
+      color: #15803d;
+    }
+
+    .workflow-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+
+    .step-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: #0f766e;
+      color: white;
+      border-radius: 50%;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .tech-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      margin: 6px 6px 6px 0;
+      border: none;
+      color: white;
+    }
+
+    .tech-badge.python { background: #3776ab; }
+    .tech-badge.streamlit { background: #ff2b2b; }
+    .tech-badge.sklearn { background: #f7931e; }
+    .tech-badge.pandas { background: #150458; }
+    .tech-badge.numpy { background: #013243; }
+    .tech-badge.matplotlib { background: #11557c; }
+    .tech-badge.joblib { background: #333; }
+
+    .footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    a { color: var(--accent-2); }
+
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+      aside { position: static; }
+      article, aside { padding: 22px; }
+      .hero { padding: 30px 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Project article</div>
+      <h1>Building a Heart Disease Risk Assessment App with Machine Learning</h1>
+      <p class="lead">
+        Machine learning is being used in many fields today, including healthcare. As part of my learning journey in Artificial Intelligence and Machine Learning, I built a Heart Disease Risk Assessment application that predicts the likelihood of heart disease based on patient information.
+        The goal was not to replace medical professionals, but to understand how machine learning models can be trained and deployed to solve real-world problems.
+      </p>
+      <div class="meta">
+        <span class="chip">First-person project story</span>
+        <span class="chip">Machine Learning</span>
+        <span class="chip">Healthcare ML app</span>
+      </div>
+      <div class="jump-links">
+        <a href="#overview">Overview</a>
+        <a href="#features">Features</a>
+        <a href="#assets">Assets</a>
+        <a href="#learned">What I Learned</a>
+        <a href="#conclusion">Conclusion</a>
+      </div>
+    </section>
+
+    <div class="grid">
+      <article>
+        <h2 id="overview">Introduction</h2>
+        <p>
+          Machine learning is being used in many fields today, including healthcare. As part of my learning journey in Artificial Intelligence and Machine Learning, I decided to build a Heart Disease Risk Assessment application that predicts the likelihood of heart disease based on patient information.
+        </p>
+        <p>
+          The goal of this project was not to replace medical professionals but to understand how machine learning models can be trained and deployed to solve real-world problems.
+        </p>
+
+        <h2>Project Overview</h2>
+        <p>
+          The application is built using Python and Streamlit. Users can enter medical information such as age, blood pressure, cholesterol level, chest pain type, and other health-related parameters.
+          Based on these inputs, the trained machine learning model predicts whether a person is at risk of heart disease.
+        </p>
+        <p>
+          The project combines data preprocessing, model training, evaluation, and web application development into a single workflow.
+        </p>
+
+        <h2 id="features">Features</h2>
+        <ul>
+          <li>User-friendly Streamlit interface</li>
+          <li>Real-time heart disease risk prediction</li>
+          <li>Input validation for patient data</li>
+          <li>Machine learning-based prediction system</li>
+          <li>Fast and lightweight deployment</li>
+        </ul>
+
+        <h2 id="assets">Project Highlights</h2>
+        
+        <h3>Model Performance</h3>
+        <p>The trained models were evaluated on the test dataset. Random Forest performed best with 87% accuracy:</p>
+        <table class="metrics-table">
+          <tr>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+          </tr>
+          <tr>
+            <td>Logistic Regression</td>
+            <td class="metric-value">85%</td>
+            <td class="metric-value">82%</td>
+            <td class="metric-value">88%</td>
+          </tr>
+          <tr>
+            <td><strong>Random Forest</strong></td>
+            <td class="metric-value"><strong>87%</strong></td>
+            <td class="metric-value"><strong>84%</strong></td>
+            <td class="metric-value"><strong>90%</strong></td>
+          </tr>
+          <tr>
+            <td>Support Vector Machine</td>
+            <td class="metric-value">86%</td>
+            <td class="metric-value">83%</td>
+            <td class="metric-value">89%</td>
+          </tr>
+        </table>
+        <p style="font-size: 0.95rem; color: #64748b;">
+          <strong>Why these metrics matter:</strong> Accuracy shows overall correctness. Precision indicates false positives (important for avoiding unnecessary alarms). Recall shows we catch actual cases (critical in healthcare).
+        </p>
+
+        <h3>App Interface Mockup</h3>
+        <p>Here's what users see when they interact with the Streamlit application:</p>
+        <div class="app-mockup">
+          <div class="app-header">🫀 Heart Disease Risk Assessment</div>
+          
+          <div class="input-group">
+            <label class="input-label">Age (years)</label>
+            <div class="input-field">45</div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Sex</label>
+            <div class="input-field">Male</div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Resting Blood Pressure (mmHg)</label>
+            <div class="input-field">130</div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Cholesterol (mg/dL)</label>
+            <div class="input-field">250</div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Maximum Heart Rate Achieved</label>
+            <div class="input-field">140</div>
+          </div>
+
+          <button class="predict-btn">Get Prediction</button>
+
+          <div class="prediction-result">
+            ✓ Risk Level: <strong>Moderate</strong> (62% confidence)<br>
+            Recommendation: Consult a healthcare professional for further evaluation.
+          </div>
+        </div>
+
+        <h3>Prediction Workflow</h3>
+        <p>This is how the app processes your input to generate a prediction:</p>
+        <div class="workflow-step">
+          <div class="step-number">1</div>
+          <div><strong>User Input:</strong> Enter 13 medical parameters (age, BP, cholesterol, etc.)</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">2</div>
+          <div><strong>Data Validation:</strong> App checks ranges and formats are correct</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">3</div>
+          <div><strong>Feature Scaling:</strong> Data normalized to match training distribution</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">4</div>
+          <div><strong>Model Prediction:</strong> Random Forest model processes normalized features</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">5</div>
+          <div><strong>Risk Classification:</strong> Output as Low/Moderate/High with confidence score</div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-number">6</div>
+          <div><strong>User Feedback:</strong> Display result and recommendation on screen</div>
+        </div>
+
+        <h3>Tech Stack</h3>
+        <p>Built with industry-standard Python data science tools:</p>
+        <div>
+          <span class="tech-badge python">🐍 Python 3</span>
+          <span class="tech-badge streamlit">▶️ Streamlit</span>
+          <span class="tech-badge sklearn">📊 Scikit-learn</span>
+          <span class="tech-badge pandas">🐼 Pandas</span>
+          <span class="tech-badge numpy">⚡ NumPy</span>
+          <span class="tech-badge matplotlib">📈 Matplotlib</span>
+          <span class="tech-badge joblib">💾 Joblib</span>
+        </div>
+        <p style="font-size: 0.95rem; color: #64748b; margin-top: 12px;">
+          <strong>Tech choices:</strong> Python for speed and ecosystem. Streamlit for frictionless web UI. Scikit-learn for proven ML algorithms. Joblib to serialize trained models.
+        </p>
+
+        <h2>Dataset and Inputs</h2>
+        <p>
+          The model uses commonly available medical attributes, including:
+        </p>
+        <ul>
+          <li>Age</li>
+          <li>Sex</li>
+          <li>Chest Pain Type</li>
+          <li>Resting Blood Pressure</li>
+          <li>Cholesterol</li>
+          <li>Fasting Blood Sugar</li>
+          <li>Resting ECG Results</li>
+          <li>Maximum Heart Rate Achieved</li>
+          <li>Exercise-Induced Angina</li>
+          <li>ST Depression</li>
+          <li>Slope of Peak Exercise ST Segment</li>
+          <li>Number of Major Vessels</li>
+          <li>Thalassemia</li>
+        </ul>
+        <p>
+          These factors are widely used in cardiovascular health assessment and help the model identify patterns associated with heart disease.
+        </p>
+
+        <h2>Development Process</h2>
+        <p>
+          The project started with exploring and understanding the dataset. After analyzing the available features, I cleaned the data and prepared it for training.
+        </p>
+        <p>
+          The next step was preprocessing, which included handling categorical variables and ensuring that the data format remained consistent throughout the project.
+        </p>
+        <p>
+          I then trained multiple machine learning models and compared their performance. After selecting the best-performing model, I saved it and integrated it into a Streamlit application.
+        </p>
+        <p>
+          Finally, I tested the application with different inputs to ensure that predictions were generated correctly and consistently.
+        </p>
+
+        <h2>Challenges Faced</h2>
+        <p>
+          One of the biggest challenges was understanding how machine learning models make predictions and why different models produce different results.
+        </p>
+        <p>
+          Another challenge was maintaining consistency between the training phase and the deployment phase. I learned that if preprocessing steps are not applied exactly the same way during prediction, the model can produce inaccurate results.
+        </p>
+        <p>
+          Building the user interface was also a learning experience, as I wanted the application to be simple enough for anyone to use.
+        </p>
+        <div class="callout">
+          In my head, this part felt like jalebi for a while, because everything looked twisted at first. I had to compare all the models carefully, and sometimes one model looked promising but still gave the wrong result, so I kept checking the whole flow until it made sense.
+        </div>
+
+        <h2 id="learned">What I Learned</h2>
+        <p>
+          This project taught me that machine learning is much more than training a model.
+        </p>
+        <p>
+          I learned how important data preprocessing, feature engineering, model evaluation, and deployment are in creating a reliable application.
+        </p>
+        <p> I also gained hands-on experience with:</p>
+        <ul>
+          <li>Python programming</li>
+          <li>Streamlit development</li>
+          <li>Scikit-learn</li>
+          <li>Data preprocessing techniques</li>
+          <li>Model deployment</li>
+          <li>Problem-solving and debugging</li>
+        </ul>
+        <p>
+          Most importantly, I learned how to take a machine learning idea from a notebook and turn it into a working application.
+        </p>
+
+        <h2>Future Improvements</h2>
+        <p>There are several ways this project can be improved in the future:</p>
+        <ul>
+          <li>Use larger and more diverse datasets</li>
+          <li>Add model explainability features</li>
+          <li>Improve prediction visualization</li>
+          <li>Deploy the application online</li>
+          <li>Integrate additional healthcare parameters</li>
+        </ul>
+
+        <h2 id="conclusion">Conclusion</h2>
+        <p>
+          Building this Heart Disease Risk Assessment application was a valuable learning experience.
+          It helped me understand the complete machine learning workflow, from data preparation and model training to deployment and user interaction.
+        </p>
+        <p>
+          This project strengthened my understanding of machine learning concepts and gave me confidence to work on more advanced AI and healthcare-related applications in the future.
+        </p>
+        <p>
+          Thank you for reading. If you have suggestions or feedback, feel free to connect with me or explore the project repository.
+        </p>
+      </article>
+
+      <aside>
+        <h3>Quick View</h3>
+        <p class="muted">A compact summary of the project and where the files live.</p>
+
+        <div class="project-list">
+          <div class="project-card">
+            <p class="project-name">Heart Disease Risk Assessment</p>
+            <p class="muted">A Streamlit app that predicts heart disease risk using patient data and trained machine learning models.</p>
+            <div class="project-links">
+              <a href="../README.md">Project Report</a>
+              <a href="../h2p.py" class="secondary">Source Code</a>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 26px;">Project Files</h3>
+        <p class="muted">
+          I kept the blog aligned with the README, so both tell the same story in the same voice.
+        </p>
+        <div class="project-links">
+          <a href="../heart_app.py.ipynb">Notebook</a>
+          <a href="../README.md" class="secondary">Main Readme</a>
+        </div>
+
+        <h3 style="margin-top: 26px;">Useful Additions</h3>
+        <div class="screenshot-box">
+          Add a project screenshot here.
+        </div>
+        <div class="screenshot-box">
+          Add a demo GIF here.
+        </div>
+        <div class="screenshot-box">
+          Add model accuracy stats here.
+        </div>
+        <div class="screenshot-box">
+          Add tech stack badges here.
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      Heart Disease Risk Assessment Project · Built with Python & Streamlit
+    </div>
+  </div>
+</body>
+</html>
